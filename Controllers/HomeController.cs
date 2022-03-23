@@ -99,13 +99,13 @@ namespace BrivoAPI.Controllers
         }
 
 
-        [HttpPost]
-        [Route("ActivateAccessPoint")]
-        public async Task<IActionResult> UpdateUserSuspendStatus(long id, string token)
+        [HttpPut]
+        [Route("CreateUser")]
+        public async Task<IActionResult> CreateUser(User user, string token)
         {
             try
             {
-                string url = $"{ _configurationSettings.APIURL}access-points/{id}/activate";
+                string url = $"{ _configurationSettings.APIURL}users";
 
                 using (var client = new HttpClient())
                 {
@@ -113,28 +113,63 @@ namespace BrivoAPI.Controllers
                     client.DefaultRequestHeaders.Add("api-key", _configurationSettings.APIKey);
                     client.DefaultRequestHeaders.Add(HttpRequestHeader.Authorization.ToString(), $"bearer {token}");
 
-                    SuspendStatusRequest suspendStatus = new SuspendStatusRequest();
-               //     suspendStatus.suspended = status;
+                    string json = JsonConvert.SerializeObject(user);
 
-                    string json = JsonConvert.SerializeObject(suspendStatus);
+                    StringContent stringContent = new StringContent(json, UnicodeEncoding.UTF8, "application/json"); // use MediaTypeNames.Application.Json in Core 3.0+ and Standard 2.1+
 
-                    StringContent stringContent = new StringContent(json, UnicodeEncoding.UTF8, "application/json"); 
-
-                    HttpResponseMessage httpResponseMessage = await client.PutAsync(url, stringContent);
+                    HttpResponseMessage httpResponseMessage = await client.PostAsync(url, stringContent);
 
                     string response = httpResponseMessage.Content.ReadAsStringAsync().Result;
 
-                    SuspendStatusResponse suspendStatusResponse = JsonConvert.DeserializeObject<SuspendStatusResponse>(httpResponseMessage.Content.ReadAsStringAsync().Result);
+                    user = JsonConvert.DeserializeObject<User>(httpResponseMessage.Content.ReadAsStringAsync().Result);
 
-                    return Ok(suspendStatusResponse);
+                    return Ok(user);
 
                 }
             }
             catch (Exception exc)
             {
-                throw exc;
+                return null;
             }
         }
+
+
+        //[HttpPost]
+        //[Route("ActivateAccessPoint")]
+        //public async Task<IActionResult> UpdateUserSuspendStatus(long id, string token)
+        //{
+        //    try
+        //    {
+        //        string url = $"{ _configurationSettings.APIURL}access-points/{id}/activate";
+
+        //        using (var client = new HttpClient())
+        //        {
+
+        //            client.DefaultRequestHeaders.Add("api-key", _configurationSettings.APIKey);
+        //            client.DefaultRequestHeaders.Add(HttpRequestHeader.Authorization.ToString(), $"bearer {token}");
+
+        //            SuspendStatusRequest suspendStatus = new SuspendStatusRequest();
+        //       //     suspendStatus.suspended = status;
+
+        //            string json = JsonConvert.SerializeObject(suspendStatus);
+
+        //            StringContent stringContent = new StringContent(json, UnicodeEncoding.UTF8, "application/json"); 
+
+        //            HttpResponseMessage httpResponseMessage = await client.PutAsync(url, stringContent);
+
+        //            string response = httpResponseMessage.Content.ReadAsStringAsync().Result;
+
+        //            SuspendStatusResponse suspendStatusResponse = JsonConvert.DeserializeObject<SuspendStatusResponse>(httpResponseMessage.Content.ReadAsStringAsync().Result);
+
+        //            return Ok(suspendStatusResponse);
+
+        //        }
+        //    }
+        //    catch (Exception exc)
+        //    {
+        //        throw exc;
+        //    }
+        //}
 
     }
 }
